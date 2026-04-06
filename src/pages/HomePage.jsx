@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import HeroSection from '../components/HeroSection';
 import FilterBar from '../components/FilterBar';
 import PropertyGrid from '../components/PropertyGrid';
 import { MARKETPLACE_API } from '../config';
@@ -130,16 +131,27 @@ export default function HomePage() {
     fetchListings(nextPage, true);
   };
 
+  const handleSearch = (params) => {
+    setFilters((prev) => ({
+      ...prev,
+      city: params.location || prev.city,
+      offerType: params.transactionType || prev.offerType,
+    }));
+    setPage(1);
+  };
+
   const handleFiltersChange = (newFilters) => {
     setFilters(newFilters);
     setPage(1);
   };
 
   return (
-    <main style={{ minHeight: '100vh', paddingTop: '64px' }}>
+    <main style={{ minHeight: '100vh' }}>
+      <HeroSection onSearch={handleSearch} />
       <FilterBar
         filters={filters}
         onFiltersChange={handleFiltersChange}
+        totalCount={totalCount}
       />
       <PropertyGrid
         listings={listings}

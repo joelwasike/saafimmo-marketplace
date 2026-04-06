@@ -1,5 +1,4 @@
-import { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 
 const cities = [
   'Cocody', 'Plateau', 'Marcory', 'Treichville', 'Yopougon',
@@ -17,7 +16,27 @@ const styles = {
   wrapper: {
     maxWidth: '1280px',
     margin: '0 auto',
-    padding: '24px 24px 0',
+    padding: '32px 24px 0',
+  },
+  topRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: '20px',
+    flexWrap: 'wrap',
+    gap: '16px',
+  },
+  title: {
+    fontSize: '24px',
+    fontWeight: '800',
+    color: '#0a1128',
+    letterSpacing: '-0.5px',
+  },
+  count: {
+    fontSize: '15px',
+    fontWeight: '500',
+    color: '#64748b',
+    marginLeft: '8px',
   },
   filterRow: {
     display: 'flex',
@@ -81,13 +100,28 @@ const styles = {
   },
 };
 
-export default function FilterBar({ filters, onFiltersChange }) {
+export default function FilterBar({ filters, onFiltersChange, totalCount }) {
   const handleChange = (key, value) => {
     onFiltersChange({ ...filters, [key]: value });
   };
 
   return (
     <div style={styles.wrapper}>
+      {/* Title row */}
+      <div style={styles.topRow}>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+          <h2 style={styles.title}>Proprietes Disponibles</h2>
+          {totalCount > 0 && (
+            <span style={styles.count}>({totalCount})</span>
+          )}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#64748b' }}>
+          <SlidersHorizontal size={16} />
+          <span style={{ fontSize: '13px', fontWeight: '500' }}>Filtres</span>
+        </div>
+      </div>
+
+      {/* Filter inputs */}
       <div style={styles.filterRow} className="filter-row">
         {/* Price Range */}
         <div style={styles.filterGroup}>
