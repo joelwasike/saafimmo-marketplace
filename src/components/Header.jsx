@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, ChevronDown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 
 const styles = {
   header: {
@@ -10,8 +10,7 @@ const styles = {
     right: 0,
     zIndex: 1000,
     background: '#ffffff',
-    boxShadow: '0 1px 12px rgba(10, 17, 40, 0.06)',
-    transition: 'all 0.3s ease',
+    borderBottom: '2px solid #1a2332',
   },
   container: {
     maxWidth: '1280px',
@@ -20,21 +19,22 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    height: '72px',
+    height: '64px',
   },
   logo: {
     display: 'flex',
     alignItems: 'center',
-    gap: '2px',
-    fontSize: '24px',
-    fontWeight: '800',
-    color: '#0a1128',
+    gap: '8px',
+    fontSize: '26px',
+    fontWeight: '900',
+    color: '#1a2332',
     letterSpacing: '-0.5px',
+    textDecoration: 'none',
   },
-  logoDot: {
-    color: '#f4a261',
-    fontSize: '28px',
-    lineHeight: 1,
+  logoAccent: {
+    color: '#1a2332',
+    fontWeight: '400',
+    fontStyle: 'italic',
   },
   nav: {
     display: 'flex',
@@ -47,26 +47,21 @@ const styles = {
     color: '#1a2332',
     transition: 'color 0.2s',
     cursor: 'pointer',
-    background: 'none',
-    border: 'none',
-    padding: 0,
-  },
-  navLinkHover: {
-    color: '#f4a261',
+    textDecoration: 'none',
   },
   actions: {
     display: 'flex',
     alignItems: 'center',
-    gap: '16px',
+    gap: '12px',
   },
   langToggle: {
     fontSize: '13px',
     fontWeight: '600',
-    color: '#64748b',
+    color: '#1a2332',
     background: '#f1f5f9',
-    border: 'none',
+    border: '1px solid #e2e8f0',
     borderRadius: '8px',
-    padding: '6px 12px',
+    padding: '8px 16px',
     cursor: 'pointer',
     transition: 'all 0.2s',
   },
@@ -74,25 +69,16 @@ const styles = {
     fontSize: '14px',
     fontWeight: '600',
     color: '#ffffff',
-    background: 'linear-gradient(135deg, #f4a261 0%, #e76f51 100%)',
+    background: '#e76f51',
     border: 'none',
-    borderRadius: '10px',
+    borderRadius: '8px',
     padding: '10px 20px',
     cursor: 'pointer',
     transition: 'all 0.3s',
-    boxShadow: '0 2px 10px rgba(244, 162, 97, 0.3)',
-  },
-  hamburger: {
-    display: 'none',
-    background: 'none',
-    border: 'none',
-    color: '#1a2332',
-    cursor: 'pointer',
-    padding: '4px',
   },
   mobileMenu: {
     position: 'fixed',
-    top: '72px',
+    top: '64px',
     left: 0,
     right: 0,
     background: '#ffffff',
@@ -109,14 +95,15 @@ const styles = {
     color: '#1a2332',
     padding: '12px 0',
     borderBottom: '1px solid #e2e8f0',
+    textDecoration: 'none',
   },
   mobilePostBtn: {
     fontSize: '15px',
     fontWeight: '600',
     color: '#ffffff',
-    background: 'linear-gradient(135deg, #f4a261 0%, #e76f51 100%)',
+    background: '#e76f51',
     border: 'none',
-    borderRadius: '10px',
+    borderRadius: '8px',
     padding: '14px 24px',
     cursor: 'pointer',
     textAlign: 'center',
@@ -125,47 +112,31 @@ const styles = {
 };
 
 const navLinks = [
-  { label: 'Accueil', path: '/' },
-  { label: 'Acheter', path: '/?type=Vente' },
-  { label: 'Louer', path: '/?type=Location' },
-  { label: 'Terrains', path: '/?type=Terrain' },
+  { label: 'Home', path: '/' },
 ];
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [lang, setLang] = useState('FR');
-  const [hoveredLink, setHoveredLink] = useState(null);
+  const [lang, setLang] = useState('EN');
 
   return (
     <header style={styles.header}>
       <div style={styles.container}>
         <Link to="/" style={styles.logo}>
-          Saaf<span style={{ color: '#f4a261' }}>Immo</span>
-          <span style={styles.logoDot}>.</span>
+          SAAF <span style={styles.logoAccent}>IMMO</span>
         </Link>
 
         {/* Desktop Nav */}
-        <nav style={{
-          ...styles.nav,
-          '@media (max-width: 768px)': { display: 'none' },
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}
-               className="desktop-nav">
-            {navLinks.map((link) => (
-              <Link
-                key={link.label}
-                to={link.path}
-                style={{
-                  ...styles.navLink,
-                  ...(hoveredLink === link.label ? styles.navLinkHover : {}),
-                }}
-                onMouseEnter={() => setHoveredLink(link.label)}
-                onMouseLeave={() => setHoveredLink(null)}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </div>
+        <nav className="desktop-nav" style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              to={link.path}
+              style={styles.navLink}
+            >
+              {link.label}
+            </Link>
+          ))}
         </nav>
 
         <div style={styles.actions} className="desktop-actions">
@@ -178,29 +149,17 @@ export default function Header() {
           <button
             style={styles.postBtn}
             onMouseEnter={(e) => {
-              e.target.style.transform = 'translateY(-1px)';
-              e.target.style.boxShadow = '0 4px 16px rgba(244, 162, 97, 0.4)';
+              e.target.style.opacity = '0.9';
             }}
             onMouseLeave={(e) => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 2px 10px rgba(244, 162, 97, 0.3)';
+              e.target.style.opacity = '1';
             }}
           >
-            Publier une annonce
-          </button>
-          <button
-            style={{
-              ...styles.hamburger,
-              display: 'none',
-            }}
-            className="hamburger-btn"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+            Post an ad
           </button>
         </div>
 
-        {/* Mobile hamburger - shown via CSS */}
+        {/* Mobile hamburger */}
         <button
           className="mobile-hamburger"
           style={{
@@ -231,7 +190,7 @@ export default function Header() {
             </Link>
           ))}
           <button style={styles.mobilePostBtn}>
-            Publier une annonce
+            Post an ad
           </button>
         </div>
       )}

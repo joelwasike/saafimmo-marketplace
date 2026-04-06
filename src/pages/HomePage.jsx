@@ -1,11 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import HeroSection from '../components/HeroSection';
 import FilterBar from '../components/FilterBar';
 import PropertyGrid from '../components/PropertyGrid';
 import { MARKETPLACE_API } from '../config';
 import { sampleListings } from '../data/sampleListings';
 
 const PAGE_SIZE = 12;
+
+const defaultFilters = {
+  priceMin: '',
+  priceMax: '',
+  offerType: '',
+  city: '',
+  areaMin: '',
+  areaMax: '',
+};
 
 export default function HomePage() {
   const [listings, setListings] = useState([]);
@@ -14,52 +22,40 @@ export default function HomePage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('recent');
-  const [searchParams, setSearchParams] = useState({
-    location: '',
-    propertyType: '',
-    transactionType: '',
-  });
+  const [filters, setFilters] = useState(defaultFilters);
   const [useFallback, setUseFallback] = useState(false);
 
-  const applyLocalFilters = useCallback((data, filter, sort, search) => {
+  const applyLocalFilters = useCallback((data, f) => {
     let filtered = [...data];
 
-    // Apply tab filter
-    if (filter !== 'all') {
-      filtered = filtered.filter((item) => {
-        if (filter === 'Location' || filter === 'Vente') {
-          return item.transactionType === filter;
-        }
-        return item.propertyType === filter;
-      });
+    if (f.offerType) {
+      filtered = filtered.filter((item) => item.transactionType === f.offerType);
     }
 
-    // Apply search params
-    if (search.location) {
-      const loc = search.location.toLowerCase();
+    if (f.city) {
+      const city = f.city.toLowerCase();
       filtered = filtered.filter((item) =>
-        (item.city || '').toLowerCase().includes(loc) ||
-        (item.neighborhood || '').toLowerCase().includes(loc) ||
-        (item.address || '').toLowerCase().includes(loc)
+        (item.city || '').toLowerCase().includes(city) ||
+        (item.neighborhood || '').toLowerCase().includes(city)
       );
     }
-    if (search.propertyType) {
-      filtered = filtered.filter((item) => item.propertyType === search.propertyType);
+
+    if (f.priceMin) {
+      filtered = filtered.filter((item) => (item.price || 0) >= Number(f.priceMin));
     }
-    if (search.transactionType) {
-      filtered = filtered.filter((item) => item.transactionType === search.transactionType);
+    if (f.priceMax) {
+      filtered = filtered.filter((item) => (item.price || 0) <= Number(f.priceMax));
     }
 
-    // Apply sort
-    if (sort === 'price_asc') {
-      filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
-    } else if (sort === 'price_desc') {
-      filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
-    } else {
-      filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    if (f.areaMin) {
+      filtered = filtered.filter((item) => (item.area || 0) >= Number(f.areaMin));
     }
+    if (f.areaMax) {
+      filtered = filtered.filter((item) => (item.area || 0) <= Number(f.areaMax));
+    }
+
+    // Default sort: most recent
+    filtered.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
     return filtered;
   }, []);
@@ -74,20 +70,14 @@ export default function HomePage() {
         pageSize: PAGE_SIZE.toString(),
       });
 
-      if (activeFilter !== 'all') {
-        if (activeFilter === 'Location' || activeFilter === 'Vente') {
-          params.set('transactionType', activeFilter);
-        } else {
-          params.set('propertyType', activeFilter);
-        }
-      }
+      if (filters.offerType) params.set('transactionType', filters.offerType);
+      if (filters.city) params.set('location', filters.city);
+      if (filters.priceMin) params.set('priceMin', filters.priceMin);
+      if (filters.priceMax) params.set('priceMax', filters.priceMax);
+      if (filters.areaMin) params.set('areaMin', filters.areaMin);
+      if (filters.areaMax) params.set('areaMax', filters.areaMax);
 
-      if (searchParams.location) params.set('location', searchParams.location);
-      if (searchParams.propertyType) params.set('propertyType', searchParams.propertyType);
-      if (searchParams.transactionType) params.set('transactionType', searchParams.transactionType);
-      if (sortBy === 'price_asc') params.set('sort', 'price_asc');
-      else if (sortBy === 'price_desc') params.set('sort', 'price_desc');
-      else params.set('sort', 'newest');
+      params.set('sort', 'newest');
 
       const response = await fetch(`${MARKETPLACE_API}/listings?${params.toString()}`);
 
@@ -95,7 +85,6 @@ export default function HomePage() {
 
       const data = await response.json();
 
-      // Handle various API response shapes
       const items = data.data || data.listings || data.results || data || [];
       const total = data.total || data.totalCount || items.length;
 
@@ -112,8 +101,7 @@ export default function HomePage() {
       console.warn('API unavailable, using fallback data:', err.message);
       setUseFallback(true);
 
-      // Use sample data with local filtering
-      const filtered = applyLocalFilters(sampleListings, activeFilter, sortBy, searchParams);
+      const filtered = applyLocalFilters(sampleListings, filters);
       const start = (pageNum - 1) * PAGE_SIZE;
       const sliced = filtered.slice(start, start + PAGE_SIZE);
 
@@ -129,12 +117,12 @@ export default function HomePage() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [activeFilter, sortBy, searchParams, applyLocalFilters]);
+  }, [filters, applyLocalFilters]);
 
   useEffect(() => {
     setPage(1);
     fetchListings(1, false);
-  }, [activeFilter, sortBy, searchParams]);
+  }, [filters]);
 
   const handleLoadMore = () => {
     const nextPage = page + 1;
@@ -142,31 +130,16 @@ export default function HomePage() {
     fetchListings(nextPage, true);
   };
 
-  const handleSearch = (params) => {
-    setSearchParams(params);
-    setActiveFilter('all');
-    setPage(1);
-  };
-
-  const handleFilterChange = (filter) => {
-    setActiveFilter(filter);
-    setPage(1);
-  };
-
-  const handleSortChange = (sort) => {
-    setSortBy(sort);
+  const handleFiltersChange = (newFilters) => {
+    setFilters(newFilters);
     setPage(1);
   };
 
   return (
-    <main style={{ minHeight: '100vh' }}>
-      <HeroSection onSearch={handleSearch} />
+    <main style={{ minHeight: '100vh', paddingTop: '64px' }}>
       <FilterBar
-        activeFilter={activeFilter}
-        onFilterChange={handleFilterChange}
-        sortBy={sortBy}
-        onSortChange={handleSortChange}
-        totalCount={totalCount}
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
       />
       <PropertyGrid
         listings={listings}
