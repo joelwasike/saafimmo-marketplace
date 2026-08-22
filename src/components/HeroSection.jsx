@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Search, MapPin, Home, ArrowRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Search, MapPin } from 'lucide-react';
+import { MARKETPLACE_API } from '../config';
 
 const styles = {
   hero: {
     minHeight: '70vh',
-    background: 'linear-gradient(135deg, #0a1128 0%, #1a3a5c 50%, #2d6a4f 100%)',
+    background: 'linear-gradient(135deg, #132a84 0%, #0f1f60 55%, #1e1b4b 100%)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -17,7 +18,7 @@ const styles = {
   overlay: {
     position: 'absolute',
     inset: 0,
-    background: 'radial-gradient(ellipse at 30% 50%, rgba(244, 162, 97, 0.08) 0%, transparent 60%)',
+    background: 'radial-gradient(ellipse at 30% 50%, rgba(37, 99, 235, 0.18) 0%, transparent 60%)',
     pointerEvents: 'none',
   },
   particles: {
@@ -28,8 +29,8 @@ const styles = {
       radial-gradient(2px 2px at 80% 30%, rgba(255,255,255,0.1), transparent),
       radial-gradient(2px 2px at 40% 70%, rgba(255,255,255,0.12), transparent),
       radial-gradient(2px 2px at 90% 80%, rgba(255,255,255,0.08), transparent),
-      radial-gradient(3px 3px at 60% 10%, rgba(244, 162, 97, 0.2), transparent),
-      radial-gradient(2px 2px at 20% 90%, rgba(244, 162, 97, 0.15), transparent)
+      radial-gradient(3px 3px at 60% 10%, rgba(56, 189, 248, 0.25), transparent),
+      radial-gradient(2px 2px at 20% 90%, rgba(56, 189, 248, 0.18), transparent)
     `,
     pointerEvents: 'none',
   },
@@ -42,8 +43,8 @@ const styles = {
   },
   tagline: {
     display: 'inline-block',
-    background: 'rgba(244, 162, 97, 0.15)',
-    color: '#f4a261',
+    background: 'rgba(56, 189, 248, 0.15)',
+    color: '#7dd3fc',
     fontSize: '13px',
     fontWeight: '700',
     padding: '8px 20px',
@@ -51,7 +52,7 @@ const styles = {
     marginBottom: '24px',
     letterSpacing: '1px',
     textTransform: 'uppercase',
-    border: '1px solid rgba(244, 162, 97, 0.2)',
+    border: '1px solid rgba(56, 189, 248, 0.25)',
   },
   heading: {
     fontSize: '52px',
@@ -63,7 +64,7 @@ const styles = {
   },
   subtitle: {
     fontSize: '18px',
-    color: 'rgba(255,255,255,0.6)',
+    color: 'rgba(255,255,255,0.65)',
     marginBottom: '40px',
     fontWeight: '400',
     lineHeight: '1.6',
@@ -85,13 +86,13 @@ const styles = {
     alignItems: 'center',
     gap: '10px',
     padding: '10px 16px',
-    borderRight: '1px solid #e2e8f0',
+    borderRight: '1px solid #e5e7eb',
   },
   input: {
     border: 'none',
     outline: 'none',
     fontSize: '15px',
-    color: '#1a2332',
+    color: '#1e1b4b',
     background: 'transparent',
     width: '100%',
     fontWeight: '500',
@@ -100,7 +101,7 @@ const styles = {
     border: 'none',
     outline: 'none',
     fontSize: '15px',
-    color: '#1a2332',
+    color: '#1e1b4b',
     background: 'transparent',
     cursor: 'pointer',
     fontWeight: '500',
@@ -109,7 +110,7 @@ const styles = {
     minWidth: '0',
   },
   searchBtn: {
-    background: 'linear-gradient(135deg, #f4a261 0%, #e76f51 100%)',
+    background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
     border: 'none',
     borderRadius: '14px',
     padding: '14px 28px',
@@ -122,7 +123,7 @@ const styles = {
     gap: '8px',
     whiteSpace: 'nowrap',
     transition: 'all 0.3s',
-    boxShadow: '0 4px 16px rgba(244, 162, 97, 0.35)',
+    boxShadow: '0 4px 16px rgba(37, 99, 235, 0.4)',
   },
   statsBar: {
     marginTop: '40px',
@@ -142,7 +143,7 @@ const styles = {
   },
   statLabel: {
     fontSize: '13px',
-    color: 'rgba(255,255,255,0.5)',
+    color: 'rgba(255,255,255,0.55)',
     fontWeight: '500',
     marginTop: '2px',
   },
@@ -152,10 +153,29 @@ export default function HeroSection({ onSearch }) {
   const [location, setLocation] = useState('');
   const [propertyType, setPropertyType] = useState('');
   const [transactionType, setTransactionType] = useState('');
+  const [stats, setStats] = useState(null);
+
+  useEffect(() => {
+    fetch(`${MARKETPLACE_API}/stats`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => data && setStats(data))
+      .catch(() => {});
+  }, []);
 
   const handleSearch = () => {
     onSearch({ location, propertyType, transactionType });
   };
+
+  const rentCount = stats?.byPropertyType?.['For Rent'] || 0;
+  const saleCount = stats?.byPropertyType?.['For Sale'] || 0;
+  const cityCount = stats?.byCity ? Object.keys(stats.byCity).length : 0;
+
+  const statItems = stats ? [
+    { number: `${stats.totalListings || 0}+`, label: 'Proprietes' },
+    { number: `${rentCount}`, label: 'A louer' },
+    { number: `${saleCount}`, label: 'A vendre' },
+    ...(cityCount > 0 ? [{ number: `${cityCount}`, label: 'Villes' }] : []),
+  ] : [];
 
   return (
     <section style={styles.hero}>
@@ -172,13 +192,13 @@ export default function HeroSection({ onSearch }) {
         </h1>
 
         <p style={styles.subtitle}>
-          Parcourez des milliers de proprietes verifiees a travers la Cote d'Ivoire
+          Parcourez des proprietes verifiees a travers la Cote d'Ivoire
         </p>
 
         {/* Search Bar */}
         <div style={styles.searchContainer} className="search-container">
           <div style={styles.inputGroup} className="search-input-group">
-            <MapPin size={18} style={{ color: '#f4a261', flexShrink: 0 }} />
+            <MapPin size={18} style={{ color: '#2563eb', flexShrink: 0 }} />
             <input
               type="text"
               placeholder="Ville, quartier..."
@@ -189,7 +209,7 @@ export default function HeroSection({ onSearch }) {
             />
           </div>
 
-          <div className="search-select-group" style={{ flex: 1, borderRight: '1px solid #e2e8f0' }}>
+          <div className="search-select-group" style={{ flex: 1, borderRight: '1px solid #e5e7eb' }}>
             <select
               value={propertyType}
               onChange={(e) => setPropertyType(e.target.value)}
@@ -220,11 +240,11 @@ export default function HeroSection({ onSearch }) {
             onClick={handleSearch}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 6px 24px rgba(244, 162, 97, 0.45)';
+              e.currentTarget.style.boxShadow = '0 6px 24px rgba(37, 99, 235, 0.5)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(244, 162, 97, 0.35)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(37, 99, 235, 0.4)';
             }}
           >
             <Search size={18} />
@@ -232,19 +252,17 @@ export default function HeroSection({ onSearch }) {
           </button>
         </div>
 
-        {/* Stats */}
-        <div style={styles.statsBar} className="stats-bar">
-          {[
-            { number: '2,500+', label: 'Proprietes' },
-            { number: '150+', label: 'Agents' },
-            { number: '50+', label: 'Villes' },
-          ].map((stat) => (
-            <div key={stat.label} style={styles.stat}>
-              <div style={styles.statNumber}>{stat.number}</div>
-              <div style={styles.statLabel}>{stat.label}</div>
-            </div>
-          ))}
-        </div>
+        {/* Stats (live counts from the marketplace API) */}
+        {statItems.length > 0 && (
+          <div style={styles.statsBar} className="stats-bar">
+            {statItems.map((stat) => (
+              <div key={stat.label} style={styles.stat}>
+                <div style={styles.statNumber}>{stat.number}</div>
+                <div style={styles.statLabel}>{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <style>{`
@@ -260,12 +278,12 @@ export default function HeroSection({ onSearch }) {
           }
           .search-input-group {
             border-right: none !important;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e5e7eb;
             width: 100%;
           }
           .search-select-group {
             border-right: none !important;
-            border-bottom: 1px solid #e2e8f0;
+            border-bottom: 1px solid #e5e7eb;
             width: 100%;
           }
           .search-container button {

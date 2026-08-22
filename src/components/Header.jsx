@@ -10,7 +10,7 @@ const styles = {
     right: 0,
     zIndex: 1000,
     background: '#ffffff',
-    boxShadow: '0 1px 12px rgba(10, 17, 40, 0.06)',
+    boxShadow: '0 12px 32px rgba(18, 36, 104, 0.08)',
     transition: 'all 0.3s ease',
   },
   container: {
@@ -28,11 +28,11 @@ const styles = {
     gap: '2px',
     fontSize: '24px',
     fontWeight: '800',
-    color: '#0a1128',
+    color: '#102a83',
     letterSpacing: '-0.5px',
   },
   logoDot: {
-    color: '#f4a261',
+    color: '#2563eb',
     fontSize: '28px',
     lineHeight: 1,
   },
@@ -44,7 +44,7 @@ const styles = {
   navLink: {
     fontSize: '15px',
     fontWeight: '500',
-    color: '#1a2332',
+    color: '#1e1b4b',
     transition: 'color 0.2s',
     cursor: 'pointer',
     background: 'none',
@@ -52,7 +52,7 @@ const styles = {
     padding: 0,
   },
   navLinkHover: {
-    color: '#f4a261',
+    color: '#2563eb',
   },
   actions: {
     display: 'flex',
@@ -62,8 +62,8 @@ const styles = {
   langToggle: {
     fontSize: '13px',
     fontWeight: '600',
-    color: '#64748b',
-    background: '#f1f5f9',
+    color: '#102a83',
+    background: '#f1f3ff',
     border: 'none',
     borderRadius: '8px',
     padding: '6px 12px',
@@ -74,19 +74,19 @@ const styles = {
     fontSize: '14px',
     fontWeight: '600',
     color: '#ffffff',
-    background: 'linear-gradient(135deg, #f4a261 0%, #e76f51 100%)',
+    background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
     border: 'none',
     borderRadius: '10px',
     padding: '10px 20px',
     cursor: 'pointer',
     transition: 'all 0.3s',
-    boxShadow: '0 2px 10px rgba(244, 162, 97, 0.3)',
+    boxShadow: '0 2px 10px rgba(37, 99, 235, 0.3)',
   },
   hamburger: {
     display: 'none',
     background: 'none',
     border: 'none',
-    color: '#1a2332',
+    color: '#1e1b4b',
     cursor: 'pointer',
     padding: '4px',
   },
@@ -106,15 +106,15 @@ const styles = {
   mobileNavLink: {
     fontSize: '16px',
     fontWeight: '500',
-    color: '#1a2332',
+    color: '#1e1b4b',
     padding: '12px 0',
-    borderBottom: '1px solid #e2e8f0',
+    borderBottom: '1px solid #e5e7eb',
   },
   mobilePostBtn: {
     fontSize: '15px',
     fontWeight: '600',
     color: '#ffffff',
-    background: 'linear-gradient(135deg, #f4a261 0%, #e76f51 100%)',
+    background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
     border: 'none',
     borderRadius: '10px',
     padding: '14px 24px',
@@ -140,7 +140,7 @@ export default function Header() {
     <header style={styles.header}>
       <div style={styles.container}>
         <Link to="/" style={styles.logo}>
-          Saaf<span style={{ color: '#f4a261' }}>Immo</span>
+          Saaf<span style={{ color: '#2563eb' }}>Immo</span>
           <span style={styles.logoDot}>.</span>
         </Link>
 
@@ -179,11 +179,11 @@ export default function Header() {
             style={styles.postBtn}
             onMouseEnter={(e) => {
               e.target.style.transform = 'translateY(-1px)';
-              e.target.style.boxShadow = '0 4px 16px rgba(244, 162, 97, 0.4)';
+              e.target.style.boxShadow = '0 4px 16px rgba(37, 99, 235, 0.4)';
             }}
             onMouseLeave={(e) => {
               e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 2px 10px rgba(244, 162, 97, 0.3)';
+              e.target.style.boxShadow = '0 2px 10px rgba(37, 99, 235, 0.3)';
             }}
           >
             Publier une annonce
@@ -206,7 +206,7 @@ export default function Header() {
           style={{
             background: 'none',
             border: 'none',
-            color: '#1a2332',
+            color: '#1e1b4b',
             cursor: 'pointer',
             padding: '4px',
             display: 'none',

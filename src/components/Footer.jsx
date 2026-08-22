@@ -4,7 +4,7 @@ import { useState } from 'react';
 
 const styles = {
   footer: {
-    background: '#0a1128',
+    background: 'linear-gradient(180deg, #132a84 0%, #0f1f60 100%)',
     color: '#cbd5e1',
     paddingTop: '64px',
   },
@@ -72,7 +72,7 @@ const styles = {
     color: '#94a3b8',
   },
   contactIcon: {
-    color: '#f4a261',
+    color: '#38bdf8',
     flexShrink: 0,
     marginTop: '2px',
   },
@@ -91,7 +91,7 @@ const styles = {
     padding: '12px',
     borderRadius: '10px',
     border: 'none',
-    background: 'linear-gradient(135deg, #f4a261 0%, #e76f51 100%)',
+    background: 'linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%)',
     color: '#ffffff',
     fontSize: '14px',
     fontWeight: '600',
@@ -142,8 +142,8 @@ export default function Footer() {
           {/* Col 1: Logo & Description */}
           <div>
             <div style={styles.logo}>
-              Saaf<span style={{ color: '#f4a261' }}>Immo</span>
-              <span style={{ color: '#f4a261' }}>.</span>
+              Saaf<span style={{ color: '#38bdf8' }}>Immo</span>
+              <span style={{ color: '#38bdf8' }}>.</span>
             </div>
             <p style={styles.description}>
               La plateforme immobiliere de reference en Afrique de l'Ouest.
@@ -155,7 +155,7 @@ export default function Footer() {
                   key={i}
                   style={styles.socialIcon}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#f4a261';
+                    e.currentTarget.style.background = '#38bdf8';
                     e.currentTarget.style.color = '#ffffff';
                   }}
                   onMouseLeave={(e) => {
@@ -183,7 +183,7 @@ export default function Footer() {
                 key={link.label}
                 to={link.path}
                 style={styles.linkItem}
-                onMouseEnter={(e) => e.target.style.color = '#f4a261'}
+                onMouseEnter={(e) => e.target.style.color = '#38bdf8'}
                 onMouseLeave={(e) => e.target.style.color = '#94a3b8'}
               >
                 {link.label}
@@ -250,7 +250,7 @@ export default function Footer() {
               <span
                 key={text}
                 style={styles.legalLink}
-                onMouseEnter={(e) => e.target.style.color = '#f4a261'}
+                onMouseEnter={(e) => e.target.style.color = '#38bdf8'}
                 onMouseLeave={(e) => e.target.style.color = '#64748b'}
               >
                 {text}

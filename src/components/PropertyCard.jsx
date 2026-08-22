@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { BedDouble, Bath, Maximize, LayoutGrid } from 'lucide-react';
+import { BedDouble, Bath, Maximize, LayoutGrid, DoorOpen } from 'lucide-react';
 import { useState } from 'react';
+import PropertyImage from './PropertyImage';
 
 function formatPrice(price) {
   if (!price) return 'Prix sur demande';
@@ -12,26 +13,24 @@ export default function PropertyCard({ property, index = 0 }) {
   const [hovered, setHovered] = useState(false);
 
   const p = property || {};
-  const transLabel = p.transactionType === 'Location' ? 'To rent' : 'For sale';
+  const transLabel = p.transactionType === 'Location' ? 'A louer' : 'A vendre';
+  const isMultiUnit = (p.totalUnits || 0) > 1;
 
   const cardStyle = {
     background: '#ffffff',
-    borderRadius: '14px',
+    borderRadius: '16px',
     overflow: 'hidden',
-    boxShadow: hovered ? '0 8px 28px rgba(10, 17, 40, 0.12)' : '0 2px 12px rgba(10, 17, 40, 0.06)',
+    boxShadow: hovered ? '0 18px 40px rgba(15, 23, 42, 0.1)' : '0 16px 34px rgba(15, 23, 42, 0.06)',
     transition: 'all 0.3s ease',
     cursor: 'pointer',
     transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
+    border: '1px solid #f1f3ff',
   };
 
   const imageContainerStyle = {
     height: '220px',
     position: 'relative',
     overflow: 'hidden',
-    background: '#c5cdd8',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
   };
 
   return (
@@ -44,19 +43,13 @@ export default function PropertyCard({ property, index = 0 }) {
     >
       {/* Image / Placeholder */}
       <div style={imageContainerStyle}>
-        {p.images && p.images.length > 0 ? (
-          <img
-            src={p.images[0]}
-            alt={p.title}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              transition: 'transform 0.5s',
-              transform: hovered ? 'scale(1.05)' : 'scale(1)',
-            }}
-          />
-        ) : null}
+        <PropertyImage
+          src={p.images && p.images[0]}
+          alt={p.title}
+          propertyType={p.propertyType}
+          seed={p.id ?? index}
+          style={{ transition: 'transform 0.5s', transform: hovered ? 'scale(1.05)' : 'scale(1)' }}
+        />
 
         {/* Badges - stacked vertically */}
         <div style={{
@@ -69,41 +62,93 @@ export default function PropertyCard({ property, index = 0 }) {
         }}>
           {/* Property type badge */}
           <div style={{
-            background: '#3b5998',
+            background: 'rgba(19, 42, 132, 0.85)',
             color: '#ffffff',
             fontSize: '11px',
             fontWeight: '700',
             padding: '5px 12px',
-            borderRadius: '4px',
-            textTransform: 'lowercase',
+            borderRadius: '6px',
+            backdropFilter: 'blur(4px)',
           }}>
-            {p.propertyType || 'property'}
+            {p.propertyType || 'Propriete'}
           </div>
 
           {/* Transaction type badge */}
           <div style={{
-            background: '#1a2332',
+            background: p.transactionType === 'Location' ? '#0ea5e9' : '#10b981',
             color: '#ffffff',
             fontSize: '11px',
             fontWeight: '700',
             padding: '5px 12px',
-            borderRadius: '4px',
+            borderRadius: '6px',
           }}>
             {transLabel}
           </div>
+        </div>
 
-          {/* Price badge */}
+        {/* Price badge */}
+        <div style={{
+          position: 'absolute',
+          bottom: '12px',
+          left: '12px',
+          background: '#ffffff',
+          color: '#102a83',
+          fontSize: '14px',
+          fontWeight: '800',
+          padding: '6px 14px',
+          borderRadius: '8px',
+          boxShadow: '0 6px 16px rgba(15, 23, 42, 0.25)',
+        }}>
+          {formatPrice(p.price)}{p.price ? ' XOF' : ''}{p.period ? `/${p.period}` : ''}
+        </div>
+
+        {/* Available units badge, for buildings with several apartments */}
+        {isMultiUnit && (
           <div style={{
-            background: '#e74c3c',
+            position: 'absolute',
+            bottom: '12px',
+            right: '12px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            background: (p.availableUnits || 0) > 0 ? 'rgba(16, 185, 129, 0.92)' : 'rgba(100, 116, 139, 0.85)',
             color: '#ffffff',
             fontSize: '11px',
             fontWeight: '700',
-            padding: '5px 12px',
-            borderRadius: '4px',
+            padding: '5px 10px',
+            borderRadius: '6px',
           }}>
-            {formatPrice(p.price)}
+            <DoorOpen size={12} />
+            {(p.availableUnits || 0) > 0
+              ? `${p.availableUnits} dispo. / ${p.totalUnits}`
+              : 'Complet'}
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* Title */}
+      <div style={{ padding: '14px 16px 0' }}>
+        <h3 style={{
+          fontSize: '14px',
+          fontWeight: '700',
+          color: '#102a83',
+          margin: 0,
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          {p.title}
+        </h3>
+        <p style={{
+          fontSize: '12px',
+          color: '#64748b',
+          margin: '4px 0 0',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+        }}>
+          {p.address || [p.neighborhood, p.city].filter(Boolean).join(', ') || 'Localisation non precisee'}
+        </p>
       </div>
 
       {/* Stats Row */}
@@ -111,8 +156,9 @@ export default function PropertyCard({ property, index = 0 }) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '14px 16px',
-        borderTop: '1px solid #edf0f4',
+        padding: '12px 16px 14px',
+        marginTop: '10px',
+        borderTop: '1px solid #f1f3ff',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {p.propertyType !== 'Terrain' && (
@@ -125,7 +171,7 @@ export default function PropertyCard({ property, index = 0 }) {
                 color: '#64748b',
               }}>
                 <BedDouble size={16} style={{ color: '#94a3b8' }} />
-                <span style={{ fontWeight: '600', color: '#1a2332' }}>{p.bedrooms || 0}</span>
+                <span style={{ fontWeight: '600', color: '#1e1b4b' }}>{p.bedrooms || 0}</span>
               </div>
               <div style={{
                 display: 'flex',
@@ -135,7 +181,7 @@ export default function PropertyCard({ property, index = 0 }) {
                 color: '#64748b',
               }}>
                 <Bath size={16} style={{ color: '#94a3b8' }} />
-                <span style={{ fontWeight: '600', color: '#1a2332' }}>{p.bathrooms || 0}</span>
+                <span style={{ fontWeight: '600', color: '#1e1b4b' }}>{p.bathrooms || 0}</span>
               </div>
             </>
           )}
@@ -147,7 +193,7 @@ export default function PropertyCard({ property, index = 0 }) {
             color: '#64748b',
           }}>
             <Maximize size={16} style={{ color: '#94a3b8' }} />
-            <span style={{ fontWeight: '600', color: '#1a2332' }}>{p.area || 0}</span>
+            <span style={{ fontWeight: '600', color: '#1e1b4b' }}>{p.area || 0}</span>
             <span>m²</span>
           </div>
         </div>

@@ -21,9 +21,9 @@ const styles = {
   loadMoreBtn: {
     padding: '14px 40px',
     borderRadius: '14px',
-    border: '2px solid #e2e8f0',
+    border: '2px solid #e5e7eb',
     background: '#ffffff',
-    color: '#1a2332',
+    color: '#1e1b4b',
     fontSize: '15px',
     fontWeight: '700',
     cursor: 'pointer',
@@ -50,7 +50,7 @@ const styles = {
   emptyTitle: {
     fontSize: '20px',
     fontWeight: '700',
-    color: '#1a2332',
+    color: '#1e1b4b',
     marginBottom: '8px',
   },
   emptyText: {
@@ -95,15 +95,15 @@ export default function PropertyGrid({ listings, loading, hasMore, onLoadMore, l
             onClick={onLoadMore}
             disabled={loadingMore}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#f4a261';
+              e.currentTarget.style.background = '#2563eb';
               e.currentTarget.style.color = '#ffffff';
-              e.currentTarget.style.borderColor = '#f4a261';
-              e.currentTarget.style.boxShadow = '0 4px 16px rgba(244, 162, 97, 0.3)';
+              e.currentTarget.style.borderColor = '#2563eb';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(37, 99, 235, 0.3)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = '#ffffff';
-              e.currentTarget.style.color = '#1a2332';
-              e.currentTarget.style.borderColor = '#e2e8f0';
+              e.currentTarget.style.color = '#1e1b4b';
+              e.currentTarget.style.borderColor = '#e5e7eb';
               e.currentTarget.style.boxShadow = 'none';
             }}
           >

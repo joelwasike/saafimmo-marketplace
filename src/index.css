@@ -1,20 +1,32 @@
 :root {
-  --primary: #1a2332;
-  --primary-dark: #0a1128;
-  --accent: #f4a261;
-  --accent-hover: #e76f51;
-  --text: #1a2332;
+  /* Palette matches the SaafImmo dashboards (RoleLayout / sa-* design system) */
+  --primary: #132a84;
+  --primary-dark: #0f1f60;
+  --primary-text: #102a83;
+  --ink: #1e1b4b;
+  --accent: #2563eb;
+  --accent-2: #0ea5e9;
+  --highlight: #f97316;
+  --highlight-2: #f43f5e;
+  --text: #1e1b4b;
   --text-light: #64748b;
-  --text-muted: #94a3b8;
-  --bg: #f8fafc;
+  --text-muted: #9ca3af;
+  --bg: #fafbfc;
+  --bg-tint: #f7f8ff;
   --card: #ffffff;
-  --border: #e2e8f0;
+  --border: #e5e7eb;
   --success: #10b981;
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow: 0 4px 20px rgba(10, 17, 40, 0.08);
-  --shadow-hover: 0 8px 32px rgba(10, 17, 40, 0.14);
-  --font: 'Plus Jakarta Sans', sans-serif;
+  --success-dark: #047857;
+  --warning: #f59e0b;
+  --warning-dark: #d97706;
+  --danger: #ef4444;
+  --danger-dark: #dc2626;
+  --radius: 20px;
+  --radius-lg: 24px;
+  --radius-sm: 12px;
+  --shadow: 0 16px 34px rgba(15, 23, 42, 0.06);
+  --shadow-hover: 0 18px 40px rgba(15, 23, 42, 0.1);
+  --font: 'Poppins', sans-serif;
 }
 
 *, *::before, *::after {
