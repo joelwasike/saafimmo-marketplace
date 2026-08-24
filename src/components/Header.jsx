@@ -175,19 +175,22 @@ export default function Header() {
           >
             {lang}
           </button>
-          <button
+          <a
+            href="https://app.hubimmo.ci/"
+            target="_blank"
+            rel="noopener noreferrer"
             style={styles.postBtn}
             onMouseEnter={(e) => {
-              e.target.style.transform = 'translateY(-1px)';
-              e.target.style.boxShadow = '0 4px 16px rgba(37, 99, 235, 0.4)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(37, 99, 235, 0.4)';
             }}
             onMouseLeave={(e) => {
-              e.target.style.transform = 'translateY(0)';
-              e.target.style.boxShadow = '0 2px 10px rgba(37, 99, 235, 0.3)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 2px 10px rgba(37, 99, 235, 0.3)';
             }}
           >
-            Publier une annonce
-          </button>
+            Login / Register
+          </a>
           <button
             style={{
               ...styles.hamburger,
@@ -230,9 +233,15 @@ export default function Header() {
               {link.label}
             </Link>
           ))}
-          <button style={styles.mobilePostBtn}>
-            Publier une annonce
-          </button>
+          <a
+            href="https://app.hubimmo.ci/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={styles.mobilePostBtn}
+            onClick={() => setMobileOpen(false)}
+          >
+            Login / Register
+          </a>
         </div>
       )}
 

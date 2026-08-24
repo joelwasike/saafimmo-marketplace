@@ -5,7 +5,7 @@ import { MARKETPLACE_API } from '../config';
 const styles = {
   hero: {
     minHeight: '70vh',
-    background: 'linear-gradient(135deg, #132a84 0%, #0f1f60 55%, #1e1b4b 100%)',
+    background: '#0f1f60',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -15,10 +15,36 @@ const styles = {
     paddingTop: '72px',
     padding: '120px 24px 60px',
   },
+  bgImage: {
+    position: 'absolute',
+    inset: 0,
+    backgroundImage: "url('/pexels-pablo-di-zara-532634209-16495231.jpg')",
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    zIndex: 0,
+  },
+  gradientOverlay: {
+    position: 'absolute',
+    inset: 0,
+    // Light brand-color wash so the photo stays visible, tinted to match the theme.
+    background: 'linear-gradient(135deg, rgba(19,42,132,0.5) 0%, rgba(15,31,96,0.4) 55%, rgba(30,27,75,0.5) 100%)',
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
+  titleScrim: {
+    position: 'absolute',
+    inset: 0,
+    // Dark patch centered behind the headline/search area only, so the photo reads
+    // clearly at the edges while the text on top stays legible.
+    background: 'radial-gradient(ellipse 65% 60% at 50% 42%, rgba(8,11,30,0.65) 0%, rgba(8,11,30,0.25) 55%, transparent 80%)',
+    zIndex: 1,
+    pointerEvents: 'none',
+  },
   overlay: {
     position: 'absolute',
     inset: 0,
     background: 'radial-gradient(ellipse at 30% 50%, rgba(37, 99, 235, 0.18) 0%, transparent 60%)',
+    zIndex: 1,
     pointerEvents: 'none',
   },
   particles: {
@@ -32,11 +58,12 @@ const styles = {
       radial-gradient(3px 3px at 60% 10%, rgba(56, 189, 248, 0.25), transparent),
       radial-gradient(2px 2px at 20% 90%, rgba(56, 189, 248, 0.18), transparent)
     `,
+    zIndex: 2,
     pointerEvents: 'none',
   },
   content: {
     position: 'relative',
-    zIndex: 2,
+    zIndex: 3,
     textAlign: 'center',
     maxWidth: '800px',
     margin: '0 auto',
@@ -53,6 +80,7 @@ const styles = {
     letterSpacing: '1px',
     textTransform: 'uppercase',
     border: '1px solid rgba(56, 189, 248, 0.25)',
+    textShadow: '0 2px 10px rgba(0,0,0,0.4)',
   },
   heading: {
     fontSize: '52px',
@@ -61,13 +89,15 @@ const styles = {
     lineHeight: '1.15',
     marginBottom: '16px',
     letterSpacing: '-1.5px',
+    textShadow: '0 4px 20px rgba(0,0,0,0.5)',
   },
   subtitle: {
     fontSize: '18px',
-    color: 'rgba(255,255,255,0.65)',
+    color: 'rgba(255,255,255,0.8)',
     marginBottom: '40px',
     fontWeight: '400',
     lineHeight: '1.6',
+    textShadow: '0 2px 12px rgba(0,0,0,0.45)',
   },
   searchContainer: {
     background: '#ffffff',
@@ -140,12 +170,14 @@ const styles = {
     fontWeight: '800',
     color: '#ffffff',
     letterSpacing: '-0.5px',
+    textShadow: '0 2px 10px rgba(0,0,0,0.5)',
   },
   statLabel: {
     fontSize: '13px',
-    color: 'rgba(255,255,255,0.55)',
+    color: 'rgba(255,255,255,0.75)',
     fontWeight: '500',
     marginTop: '2px',
+    textShadow: '0 2px 8px rgba(0,0,0,0.45)',
   },
 };
 
@@ -179,6 +211,9 @@ export default function HeroSection({ onSearch }) {
 
   return (
     <section style={styles.hero}>
+      <div style={styles.bgImage} />
+      <div style={styles.gradientOverlay} />
+      <div style={styles.titleScrim} />
       <div style={styles.overlay} />
       <div style={styles.particles} />
 
