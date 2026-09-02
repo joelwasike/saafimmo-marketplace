@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   ArrowLeft, MapPin, BedDouble, Bath, Maximize, Building2,
   Home, LandPlot, Building, Phone, Mail, MessageCircle,
@@ -20,6 +20,20 @@ const propertyTypeIcons = {
   Villa: Home,
   Terrain: LandPlot,
   Immeuble: Building,
+};
+
+// Maps the raw feature keys stored on a PropertyUnit (set from the Sales Manager's
+// Add/Edit Apartment form) to French display labels for the apartment detail view.
+const unitFeatureLabels = {
+  floor: 'Etage',
+  standardRooms: 'Pieces standard',
+  selfContainedRooms: 'Pieces avec salle de bain',
+  bathroom: 'Salle de bain',
+  guestToilet: 'Toilette invites',
+  livingRoom: 'Salon',
+  kitchen: 'Cuisine',
+  balcony: 'Balcon',
+  parking: 'Parking',
 };
 
 function formatPrice(price) {
@@ -277,6 +291,8 @@ const s = {
 export default function PropertyDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const unitId = searchParams.get('unit');
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
@@ -288,6 +304,11 @@ export default function PropertyDetail() {
     fetchProperty();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    setActiveImage(0);
+  }, [unitId]);
 
   const fetchProperty = async () => {
     setLoading(true);
@@ -343,14 +364,37 @@ export default function PropertyDetail() {
   if (!property) return null;
 
   const p = property;
-  const transType = p.transactionType || 'Vente';
-  const badgeInfo = typeColors[transType] || typeColors.Vente;
-  const PropertyIcon = propertyTypeIcons[p.propertyType] || Building2;
-  const images = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
   const units = Array.isArray(p.units) ? p.units : [];
   const isMultiUnit = (p.totalUnits || 0) > 1 || units.length > 1;
   const availableUnits = p.availableUnits ?? units.filter((u) => String(u.status).toLowerCase() === 'vacant').length;
   const totalUnits = p.totalUnits || units.length;
+
+  // A building's units carry their own photos + basic stats. When one is selected (via
+  // ?unit=<id>), the page shows that apartment first, then the building as secondary info —
+  // villas and standalone properties never have units, so they're unaffected.
+  const selectedUnit = unitId ? units.find((u) => String(u.id) === String(unitId)) : null;
+  const viewingUnit = !!selectedUnit;
+
+  const buildingImages = Array.isArray(p.images) ? p.images.filter(Boolean) : [];
+  const unitImages = viewingUnit && Array.isArray(selectedUnit.pictures) ? selectedUnit.pictures.filter(Boolean) : [];
+  const images = viewingUnit ? unitImages : buildingImages;
+
+  const unitIsVacant = viewingUnit && String(selectedUnit.status || '').toLowerCase() === 'vacant';
+  const transType = p.transactionType || 'Vente';
+  const badgeInfo = viewingUnit
+    ? { bg: unitIsVacant ? '#10b981' : '#64748b', label: unitIsVacant ? 'Disponible' : 'Occupe' }
+    : typeColors[transType] || typeColors.Vente;
+  const PropertyIcon = propertyTypeIcons[p.propertyType] || Building2;
+
+  let unitFeatures = null;
+  if (viewingUnit && selectedUnit.features) {
+    try {
+      const parsed = JSON.parse(selectedUnit.features);
+      unitFeatures = parsed && typeof parsed === 'object' ? parsed : null;
+    } catch {
+      unitFeatures = null;
+    }
+  }
 
   const contactHref = p.agencyPhone ? `tel:${p.agencyPhone.replace(/\s+/g, '')}` : undefined;
 
@@ -374,13 +418,23 @@ export default function PropertyDetail() {
           Retour aux annonces
         </button>
 
+        {viewingUnit && (
+          <Link
+            to={`/property/${id}`}
+            style={{ ...s.backBtn, marginLeft: '12px', textDecoration: 'none' }}
+          >
+            <Building size={16} />
+            Retour a l'immeuble
+          </Link>
+        )}
+
         {/* Hero Image */}
         <div style={s.imageSection}>
           <PropertyImage
             src={images[activeImage]}
-            alt={p.title}
-            propertyType={p.propertyType}
-            seed={p.id}
+            alt={viewingUnit ? `Appartement ${selectedUnit.unitNumber}` : p.title}
+            propertyType={viewingUnit ? 'Appartement' : p.propertyType}
+            seed={viewingUnit ? (p.id || 0) + (selectedUnit.id || 0) : p.id}
             iconSize={100}
           />
           {/* Badge overlay */}
@@ -418,13 +472,15 @@ export default function PropertyDetail() {
             <div style={s.card}>
               {/* Price */}
               <div style={s.price}>
-                {formatPrice(p.price)} <span style={s.priceUnit}>
-                  {p.price ? 'XOF' : ''}{p.period ? `/${p.period}` : ''}
+                {formatPrice(viewingUnit ? selectedUnit.rent : p.price)} <span style={s.priceUnit}>
+                  {(viewingUnit ? selectedUnit.rent : p.price) ? 'XOF' : ''}{(viewingUnit || p.period) ? '/mois' : ''}
                 </span>
               </div>
 
               {/* Title */}
-              <h1 style={s.title}>{p.title}</h1>
+              <h1 style={s.title}>
+                {viewingUnit ? `Appartement ${selectedUnit.unitNumber || ''}`.trim() : p.title}
+              </h1>
 
               {/* Location */}
               <div style={s.location}>
@@ -434,42 +490,89 @@ export default function PropertyDetail() {
 
               {/* Details Grid */}
               <div style={s.detailsGrid} className="detail-stats-grid">
-                {p.propertyType !== 'Terrain' && !isMultiUnit && (
+                {viewingUnit ? (
                   <>
                     <div style={s.detailItem}>
                       <BedDouble size={22} style={s.detailIcon} />
-                      <div style={s.detailValue}>{p.bedrooms || 0}</div>
+                      <div style={s.detailValue}>{selectedUnit.bedrooms || 0}</div>
                       <div style={s.detailLabel}>Chambres</div>
                     </div>
                     <div style={s.detailItem}>
                       <Bath size={22} style={s.detailIcon} />
-                      <div style={s.detailValue}>{p.bathrooms || 0}</div>
+                      <div style={s.detailValue}>{selectedUnit.bathrooms || 0}</div>
                       <div style={s.detailLabel}>Salles de bain</div>
+                    </div>
+                    <div style={s.detailItem}>
+                      <DoorOpen size={22} style={s.detailIcon} />
+                      <div style={s.detailValue}>{unitIsVacant ? 'Disponible' : 'Occupe'}</div>
+                      <div style={s.detailLabel}>Statut</div>
+                    </div>
+                    <div style={s.detailItem}>
+                      <Building2 size={22} style={s.detailIcon} />
+                      <div style={s.detailValue} className="detail-type-value">Appartement</div>
+                      <div style={s.detailLabel}>Type</div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {p.propertyType !== 'Terrain' && !isMultiUnit && (
+                      <>
+                        <div style={s.detailItem}>
+                          <BedDouble size={22} style={s.detailIcon} />
+                          <div style={s.detailValue}>{p.bedrooms || 0}</div>
+                          <div style={s.detailLabel}>Chambres</div>
+                        </div>
+                        <div style={s.detailItem}>
+                          <Bath size={22} style={s.detailIcon} />
+                          <div style={s.detailValue}>{p.bathrooms || 0}</div>
+                          <div style={s.detailLabel}>Salles de bain</div>
+                        </div>
+                      </>
+                    )}
+                    {isMultiUnit && (
+                      <div style={s.detailItem}>
+                        <DoorOpen size={22} style={s.detailIcon} />
+                        <div style={s.detailValue}>{availableUnits}/{totalUnits}</div>
+                        <div style={s.detailLabel}>Appart. disponibles</div>
+                      </div>
+                    )}
+                    <div style={s.detailItem}>
+                      <Maximize size={22} style={s.detailIcon} />
+                      <div style={s.detailValue}>{p.area || 0}</div>
+                      <div style={s.detailLabel}>Superficie (m²)</div>
+                    </div>
+                    <div style={s.detailItem}>
+                      <PropertyIcon size={22} style={s.detailIcon} />
+                      <div style={s.detailValue} className="detail-type-value">{p.propertyType}</div>
+                      <div style={s.detailLabel}>Type</div>
                     </div>
                   </>
                 )}
-                {isMultiUnit && (
-                  <div style={s.detailItem}>
-                    <DoorOpen size={22} style={s.detailIcon} />
-                    <div style={s.detailValue}>{availableUnits}/{totalUnits}</div>
-                    <div style={s.detailLabel}>Appart. disponibles</div>
-                  </div>
-                )}
-                <div style={s.detailItem}>
-                  <Maximize size={22} style={s.detailIcon} />
-                  <div style={s.detailValue}>{p.area || 0}</div>
-                  <div style={s.detailLabel}>Superficie (m²)</div>
-                </div>
-                <div style={s.detailItem}>
-                  <PropertyIcon size={22} style={s.detailIcon} />
-                  <div style={s.detailValue} className="detail-type-value">{p.propertyType}</div>
-                  <div style={s.detailLabel}>Type</div>
-                </div>
               </div>
             </div>
 
+            {/* Apartment-specific characteristics, only shown while viewing one unit */}
+            {viewingUnit && unitFeatures && Object.values(unitFeatures).some(Boolean) && (
+              <div style={s.card}>
+                <h3 style={s.sectionTitle}>Caracteristiques de l'appartement</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '12px' }}>
+                  {Object.entries(unitFeatureLabels)
+                    .filter(([key]) => unitFeatures[key])
+                    .map(([key, label]) => (
+                      <div key={key} style={{
+                        display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px',
+                        color: '#64748b', padding: '10px 14px', background: '#f7f8ff', borderRadius: '10px',
+                      }}>
+                        <CheckCircle2 size={16} style={{ color: '#10b981', flexShrink: 0 }} />
+                        {label}: {String(unitFeatures[key])}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
             {/* Available apartments / units, for buildings with more than one unit */}
-            {isMultiUnit && units.length > 0 && (
+            {!viewingUnit && isMultiUnit && units.length > 0 && (
               <div style={s.card}>
                 <h3 style={s.sectionTitle}>
                   Appartements ({availableUnits} disponible{availableUnits > 1 ? 's' : ''} sur {totalUnits})
@@ -477,13 +580,14 @@ export default function PropertyDetail() {
                 <div style={s.unitsGrid}>
                   {units.map((u, i) => {
                     const isVacant = String(u.status || '').toLowerCase() === 'vacant';
+                    const unitPhoto = Array.isArray(u.pictures) ? u.pictures[0] : null;
                     return (
-                      <div key={u.id ?? i} style={s.unitCard}>
+                      <Link key={u.id ?? i} to={`/property/${id}?unit=${u.id}`} style={{ ...s.unitCard, display: 'block', textDecoration: 'none', cursor: 'pointer' }}>
                         <div style={s.unitImage}>
                           <PropertyImage
-                            src={u.picture}
+                            src={unitPhoto}
                             alt={u.unitNumber || `Unite ${i + 1}`}
-                            propertyType={p.propertyType}
+                            propertyType="Appartement"
                             seed={(p.id || 0) + i + 1}
                             iconSize={28}
                           />
@@ -518,7 +622,7 @@ export default function PropertyDetail() {
                             )}
                           </div>
                         </div>
-                      </div>
+                      </Link>
                     );
                   })}
                 </div>
@@ -527,7 +631,25 @@ export default function PropertyDetail() {
 
             {/* Description */}
             <div style={s.card}>
-              <h3 style={s.sectionTitle}>Description</h3>
+              <h3 style={s.sectionTitle}>{viewingUnit ? "A propos de l'immeuble" : 'Description'}</h3>
+              {viewingUnit && buildingImages.length > 0 && (
+                <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', marginBottom: '16px' }}>
+                  {buildingImages.slice(0, 6).map((img, i) => (
+                    <div key={i} style={{ width: '110px', height: '80px', borderRadius: '10px', overflow: 'hidden', flexShrink: 0 }}>
+                      <PropertyImage src={img} alt={`${p.title} ${i + 1}`} propertyType={p.propertyType} seed={p.id} iconSize={18} />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {viewingUnit && (
+                <Link
+                  to={`/property/${id}`}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontSize: '13px', fontWeight: '600', color: '#2563eb', marginBottom: '16px', textDecoration: 'none' }}
+                >
+                  <Building size={14} />
+                  Voir les {availableUnits} appartement{availableUnits > 1 ? 's' : ''} disponible{availableUnits > 1 ? 's' : ''} de cet immeuble
+                </Link>
+              )}
               <p style={s.description}>
                 {p.description || 'Aucune description disponible pour cette propriete.'}
               </p>
@@ -553,7 +675,7 @@ export default function PropertyDetail() {
 
             {/* Features */}
             <div style={s.card}>
-              <h3 style={s.sectionTitle}>Caracteristiques</h3>
+              <h3 style={s.sectionTitle}>{viewingUnit ? "Caracteristiques de l'immeuble" : 'Caracteristiques'}</h3>
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
