@@ -58,13 +58,72 @@ export default function HomePage() {
     return filtered;
   }, []);
 
-  const fetchListings = useCallback(async (pageNum = 1, append = false) => {
-    if (pageNum === 1) setLoading(true);
-    else setLoadingMore(true);
+  useEffect(() => {
+    let ignore = false;
+
+    const run = async () => {
+      try {
+        const params = new URLSearchParams({
+          page: '1',
+          pageSize: PAGE_SIZE.toString(),
+        });
+
+        if (filters.offerType) params.set('transactionType', filters.offerType);
+        if (filters.propertyType) params.set('propertyType', filters.propertyType);
+        if (filters.city) params.set('location', filters.city);
+        if (filters.priceMin) params.set('minPrice', filters.priceMin);
+        if (filters.priceMax) params.set('maxPrice', filters.priceMax);
+
+        params.set('sort', 'newest');
+
+        const response = await fetch(`${MARKETPLACE_API}/listings?${params.toString()}`);
+        if (!response.ok) throw new Error('API error');
+
+        const data = await response.json();
+        const items = data.data || data.listings || data.results || [];
+        const total = data.total ?? data.totalCount ?? items.length;
+
+        if (!ignore) {
+          setListings(items);
+          if (data.filters?.cities?.length) {
+            setCities([...data.filters.cities].sort());
+          }
+          setTotalCount(total);
+          setHasMore(PAGE_SIZE < total);
+        }
+      } catch (err) {
+        console.warn('API unavailable, using fallback data:', err.message);
+
+        const filtered = applyLocalFilters(sampleListings, filters);
+        const sliced = filtered.slice(0, PAGE_SIZE);
+
+        if (!ignore) {
+          setListings(sliced);
+          setTotalCount(filtered.length);
+          setHasMore(PAGE_SIZE < filtered.length);
+        }
+      } finally {
+        if (!ignore) {
+          setLoading(false);
+          setLoadingMore(false);
+        }
+      }
+    };
+
+    run();
+    return () => {
+      ignore = true;
+    };
+  }, [filters, applyLocalFilters]);
+
+  const handleLoadMore = async () => {
+    const nextPage = page + 1;
+    setLoadingMore(true);
+    setPage(nextPage);
 
     try {
       const params = new URLSearchParams({
-        page: pageNum.toString(),
+        page: nextPage.toString(),
         pageSize: PAGE_SIZE.toString(),
       });
 
@@ -77,60 +136,30 @@ export default function HomePage() {
       params.set('sort', 'newest');
 
       const response = await fetch(`${MARKETPLACE_API}/listings?${params.toString()}`);
-
       if (!response.ok) throw new Error('API error');
 
       const data = await response.json();
-
       const items = data.data || data.listings || data.results || [];
       const total = data.total ?? data.totalCount ?? items.length;
 
-      if (append) {
-        setListings((prev) => [...prev, ...items]);
-      } else {
-        setListings(items);
-      }
-
-      if (data.filters?.cities?.length) {
-        setCities([...data.filters.cities].sort());
-      }
-
+      setListings((prev) => [...prev, ...items]);
       setTotalCount(total);
-      setHasMore(pageNum * PAGE_SIZE < total);
+      setHasMore(nextPage * PAGE_SIZE < total);
     } catch (err) {
-      console.warn('API unavailable, using fallback data:', err.message);
-
+      console.warn('API load more failed, using fallback data:', err.message);
       const filtered = applyLocalFilters(sampleListings, filters);
-      const start = (pageNum - 1) * PAGE_SIZE;
+      const start = (nextPage - 1) * PAGE_SIZE;
       const sliced = filtered.slice(start, start + PAGE_SIZE);
-
-      if (append) {
-        setListings((prev) => [...prev, ...sliced]);
-      } else {
-        setListings(sliced);
-      }
-
+      setListings((prev) => [...prev, ...sliced]);
       setTotalCount(filtered.length);
       setHasMore(start + PAGE_SIZE < filtered.length);
     } finally {
-      setLoading(false);
       setLoadingMore(false);
     }
-  }, [filters, applyLocalFilters]);
-
-  useEffect(() => {
-    setPage(1);
-    fetchListings(1, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters]);
-
-  const handleLoadMore = () => {
-    const nextPage = page + 1;
-    setPage(nextPage);
-    fetchListings(nextPage, true);
   };
 
   const handleSearch = (params) => {
+    setLoading(true);
     setFilters((prev) => ({
       ...prev,
       city: params.location || prev.city,
@@ -141,6 +170,7 @@ export default function HomePage() {
   };
 
   const handleFiltersChange = (newFilters) => {
+    setLoading(true);
     setFilters({ ...defaultFilters, ...newFilters });
     setPage(1);
   };

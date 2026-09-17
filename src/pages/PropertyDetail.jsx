@@ -297,48 +297,54 @@ export default function PropertyDetail() {
   const [loading, setLoading] = useState(true);
   const [similar, setSimilar] = useState([]);
   const [activeImage, setActiveImage] = useState(0);
+  const [prevSelection, setPrevSelection] = useState(`${id}-${unitId}`);
+  if (prevSelection !== `${id}-${unitId}`) {
+    setPrevSelection(`${id}-${unitId}`);
+    setActiveImage(0);
+  }
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setActiveImage(0);
-    fetchProperty();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let ignore = false;
+
+    const run = async () => {
+      try {
+        const res = await fetch(`${MARKETPLACE_API}/listings/${id}`);
+        if (!res.ok) throw new Error('Not found');
+        const data = await res.json();
+        const item = data.data || data;
+        if (!ignore) setProperty(item);
+
+        try {
+          const simRes = await fetch(`${MARKETPLACE_API}/listings?pageSize=4&propertyType=${item.propertyType || ''}`);
+          if (simRes.ok) {
+            const simData = await simRes.json();
+            const items = simData.data || simData.listings || simData.results || [];
+            if (!ignore) setSimilar(items.filter((p) => String(p.id ?? p._id) !== String(id)).slice(0, 3));
+          }
+        } catch {
+          if (!ignore) setSimilar(sampleListings.filter((p) => String(p.id) !== String(id)).slice(0, 3));
+        }
+      } catch {
+        const found = sampleListings.find((p) => String(p.id) === String(id));
+        if (!ignore) {
+          setProperty(found || sampleListings[0]);
+          setSimilar(sampleListings.filter((p) => String(p.id) !== String(id)).slice(0, 3));
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+
+    run();
+    return () => {
+      ignore = true;
+    };
   }, [id]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    setActiveImage(0);
   }, [unitId]);
-
-  const fetchProperty = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch(`${MARKETPLACE_API}/listings/${id}`);
-      if (!res.ok) throw new Error('Not found');
-      const data = await res.json();
-      const item = data.data || data;
-      setProperty(item);
-
-      // Fetch similar listings of the same asset type, excluding this one
-      try {
-        const simRes = await fetch(`${MARKETPLACE_API}/listings?pageSize=4&propertyType=${item.propertyType || ''}`);
-        if (simRes.ok) {
-          const simData = await simRes.json();
-          const items = simData.data || simData.listings || simData.results || [];
-          setSimilar(items.filter((p) => String(p.id ?? p._id) !== String(id)).slice(0, 3));
-        }
-      } catch {
-        setSimilar(sampleListings.filter((p) => String(p.id) !== String(id)).slice(0, 3));
-      }
-    } catch {
-      // Fallback to sample data
-      const found = sampleListings.find((p) => String(p.id) === String(id));
-      setProperty(found || sampleListings[0]);
-      setSimilar(sampleListings.filter((p) => String(p.id) !== String(id)).slice(0, 3));
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading) {
     return (
